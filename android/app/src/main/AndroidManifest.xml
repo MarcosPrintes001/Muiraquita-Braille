@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.muiraquita_braille">
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
    <application
+        
         android:label="Muiraquitã Braille"
         android:name="${applicationName}"
         android:requestLegacyExternalStorage="true"

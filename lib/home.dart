@@ -45,19 +45,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   translate() async {
-    var result;
-    var bytes = await file!.readAsBytes();
-
-    var colored = await ImgProc.cvtColor(bytes, 6);
-
-    var bluredImage =
-        await ImgProc.blur(colored, [45, 45], [20, 30], Core.borderReflect);
-
-    result = bluredImage;
-
-    setState(() {
-      image = Image.memory(result);
-    });
+    try {
+      var bytes = await file!.readAsBytes();
+      var colored = await ImgProc.cvtColor(bytes, 6);
+      setState(() {
+        image = Image.memory(colored);
+      });
+      // var bluredImage =
+      //     await ImgProc.blur(colored, [45, 45], [20, 30], Core.borderReflect);
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(title: Text("ERRO ao traduzir")),
+      );
+    }
   }
 
   @override

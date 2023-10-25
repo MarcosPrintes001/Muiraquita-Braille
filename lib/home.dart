@@ -1,10 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:muiraquita_braille/materials/constants.dart';
-import 'package:opencv/core/core.dart';
-import 'package:opencv/opencv.dart';
+import 'package:opencv_4/factory/pathfrom.dart';
+import 'package:opencv_4/opencv_4.dart';
+import 'package:path_provider/path_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -46,17 +49,35 @@ class _HomePageState extends State<HomePage> {
 
   translate() async {
     try {
-      var bytes = await file!.readAsBytes();
-      var colored = await ImgProc.cvtColor(bytes, 6);
+      var imageFile = file!.path;
+
+      Uint8List? grayImage = await Cv2.cvtColor(
+        pathFrom: CVPathFrom.GALLERY_CAMERA,
+        pathString: imageFile,
+        outputType: Cv2.COLOR_BGR2GRAY,
+      );
+
+      // Salve a imagem em tons de cinza temporariamente em um arquivo
+      Directory tempDir = await getTemporaryDirectory();
+      File grayImageFile = File('${tempDir.path}/gray_image.jpg');
+      await grayImageFile.writeAsBytes(grayImage!);
+
+      // Aplique o desfoque à imagem em tons de cinza
+      Uint8List? blurredImage = await Cv2.dilate(
+        pathFrom: CVPathFrom.GALLERY_CAMERA,
+        pathString: grayImageFile.path,
+        kernelSize: [3, 3],
+      );
+
       setState(() {
-        image = Image.memory(colored);
+        image = Image.memory(blurredImage!);
       });
-      // var bluredImage =
-      //     await ImgProc.blur(colored, [45, 45], [20, 30], Core.borderReflect);
+
     } catch (e) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(title: Text("ERRO ao traduzir")),
+        builder: (context) =>
+            const AlertDialog(title: Text("ERRO ao traduzir")),
       );
     }
   }
@@ -129,9 +150,9 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(20),
                       child: image!,
                     )
-                  : Column(
+                  : const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(
                           Icons.image_not_supported,
                           size: 50,

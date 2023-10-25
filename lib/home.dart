@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:muiraquita_braille/materials/constants.dart';
+import 'package:muiraquita_braille/utils/util.dart';
 import 'package:opencv_4/factory/pathfrom.dart';
 import 'package:opencv_4/opencv_4.dart';
-import 'package:path_provider/path_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   File? file;
   final ImagePicker picker = ImagePicker();
   Image? image;
+  // List<Offset> _gridLines = [];
 
   addFromGallery() async {
     final XFile? pickedFile =
@@ -44,6 +45,7 @@ class _HomePageState extends State<HomePage> {
   clearSelection() {
     setState(() {
       image = null;
+      file = null;
     });
   }
 
@@ -51,28 +53,37 @@ class _HomePageState extends State<HomePage> {
     try {
       var imageFile = file!.path;
 
+      //Aplica tons de cinza na imagem
       Uint8List? grayImage = await Cv2.cvtColor(
         pathFrom: CVPathFrom.GALLERY_CAMERA,
         pathString: imageFile,
         outputType: Cv2.COLOR_BGR2GRAY,
       );
 
-      // Salve a imagem em tons de cinza temporariamente em um arquivo
-      Directory tempDir = await getTemporaryDirectory();
-      File grayImageFile = File('${tempDir.path}/gray_image.jpg');
-      await grayImageFile.writeAsBytes(grayImage!);
+      File grayImageFile = await creatFileImage(grayImage!, "gray_image");
 
-      // Aplique o desfoque à imagem em tons de cinza
+      // Aplica o desfoque à imagem em tons de cinza
       Uint8List? blurredImage = await Cv2.dilate(
         pathFrom: CVPathFrom.GALLERY_CAMERA,
         pathString: grayImageFile.path,
         kernelSize: [3, 3],
       );
 
-      setState(() {
-        image = Image.memory(blurredImage!);
-      });
+      File bluredImageFile =
+          await creatFileImage(blurredImage!, "blured_image");
 
+      Uint8List byte = await Cv2.threshold(
+        pathFrom: CVPathFrom.GALLERY_CAMERA,
+        pathString: bluredImageFile.path,
+        thresholdValue: 150,
+        maxThresholdValue: 200,
+        thresholdType: Cv2.THRESH_BINARY,
+      );
+
+      setState(() {
+        image = Image.memory(byte);
+        // file = grayImageFile;
+      });
     } catch (e) {
       showDialog(
         context: context,
@@ -80,6 +91,25 @@ class _HomePageState extends State<HomePage> {
             const AlertDialog(title: Text("ERRO ao traduzir")),
       );
     }
+  }
+
+  makeGride() {
+    // _gridLines.clear();
+
+    // if (file != null) {
+    //   final imgSize = ImageSizeGetter.getSize(File(file!.path));
+    //   if (imgSize != null) {
+    //     final cellWidth = imgSize.width / 10;
+    //     final cellHeight = imgSize.height / 10;
+
+    //     for (int i = 1; i < 10; i++) {
+    //       _gridLines.add(Offset(cellWidth * i, 0));
+    //       _gridLines.add(Offset(cellWidth * i, imgSize.height));
+    //       _gridLines.add(Offset(0, cellHeight * i));
+    //       _gridLines.add(Offset(imgSize.width, cellHeight * i));
+    //     }
+    //   }
+    // }
   }
 
   @override
@@ -175,7 +205,25 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.black87,
               ),
               label: const Text(
-                "Traduzir",
+                "Cores",
+                style: TextStyle(
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            color: Colors.blue,
+            width: double.infinity,
+            height: 100,
+            child: TextButton.icon(
+              onPressed: translate,
+              icon: const Icon(
+                Icons.translate,
+                color: Colors.black87,
+              ),
+              label: const Text(
+                "Grade",
                 style: TextStyle(
                   color: Colors.black,
                 ),

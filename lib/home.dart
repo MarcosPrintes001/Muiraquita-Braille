@@ -60,28 +60,34 @@ class _HomePageState extends State<HomePage> {
         outputType: Cv2.COLOR_BGR2GRAY,
       );
 
-      File grayImageFile = await creatFileImage(grayImage!, "gray_image");
+      File grayImageFile = await creatFileImage(grayImage!, "gray");
 
-      // Aplica o desfoque à imagem em tons de cinza
-      Uint8List? blurredImage = await Cv2.dilate(
+      Uint8List? treshdImage = await Cv2.threshold(
         pathFrom: CVPathFrom.GALLERY_CAMERA,
         pathString: grayImageFile.path,
-        kernelSize: [3, 3],
-      );
-
-      File bluredImageFile =
-          await creatFileImage(blurredImage!, "blured_image");
-
-      Uint8List byte = await Cv2.threshold(
-        pathFrom: CVPathFrom.GALLERY_CAMERA,
-        pathString: bluredImageFile.path,
-        thresholdValue: 150,
-        maxThresholdValue: 200,
+        thresholdValue: 210,
+        maxThresholdValue: 255,
         thresholdType: Cv2.THRESH_BINARY,
       );
 
+      File treshedImageFile = await creatFileImage(treshdImage!, "tresh");
+
+      // Uint8List? dilatedImage = await Cv2.dilate(
+      //   pathFrom: CVPathFrom.GALLERY_CAMERA,
+      //   pathString: treshedImageFile.path,
+      //   kernelSize: [3, 3],
+      // );
+
+      // File dilated1ImageFile = await creatFileImage(dilatedImage!, "dilated1");
+
+      Uint8List? erodedImage = await Cv2.erode(
+        pathFrom: CVPathFrom.GALLERY_CAMERA,
+        pathString: treshedImageFile.path,
+        kernelSize: [2.5, 2.5],
+      );
+
       setState(() {
-        image = Image.memory(byte);
+        image = Image.memory(erodedImage!);
         // file = grayImageFile;
       });
     } catch (e) {
@@ -91,25 +97,6 @@ class _HomePageState extends State<HomePage> {
             const AlertDialog(title: Text("ERRO ao traduzir")),
       );
     }
-  }
-
-  makeGride() {
-    // _gridLines.clear();
-
-    // if (file != null) {
-    //   final imgSize = ImageSizeGetter.getSize(File(file!.path));
-    //   if (imgSize != null) {
-    //     final cellWidth = imgSize.width / 10;
-    //     final cellHeight = imgSize.height / 10;
-
-    //     for (int i = 1; i < 10; i++) {
-    //       _gridLines.add(Offset(cellWidth * i, 0));
-    //       _gridLines.add(Offset(cellWidth * i, imgSize.height));
-    //       _gridLines.add(Offset(0, cellHeight * i));
-    //       _gridLines.add(Offset(imgSize.width, cellHeight * i));
-    //     }
-    //   }
-    // }
   }
 
   @override
@@ -206,24 +193,6 @@ class _HomePageState extends State<HomePage> {
               ),
               label: const Text(
                 "Cores",
-                style: TextStyle(
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
-          Container(
-            color: Colors.blue,
-            width: double.infinity,
-            height: 100,
-            child: TextButton.icon(
-              onPressed: translate,
-              icon: const Icon(
-                Icons.translate,
-                color: Colors.black87,
-              ),
-              label: const Text(
-                "Grade",
                 style: TextStyle(
                   color: Colors.black,
                 ),

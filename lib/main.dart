@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:muiraquita_braille/home.dart';
+import 'package:muiraquita_braille/pages/home.dart';
 
 void main() async {
   runApp(const MyApp());

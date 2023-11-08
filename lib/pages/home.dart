@@ -67,28 +67,36 @@ class _HomePageState extends State<HomePage> {
       Uint8List? treshdImage = await Cv2.threshold(
         pathFrom: CVPathFrom.GALLERY_CAMERA,
         pathString: grayImageFile.path,
-        thresholdValue: 230,
-        maxThresholdValue: 255,
+        thresholdValue: 240,
         thresholdType: Cv2.THRESH_BINARY,
+        maxThresholdValue: 255,
       );
 
       File treshedImageFile = await creatFileImage(treshdImage!, "tresh");
 
-      Uint8List? dilatedImage = await Cv2.dilate(
+      Uint8List? blured = await Cv2.medianBlur(
         pathFrom: CVPathFrom.GALLERY_CAMERA,
         pathString: treshedImageFile.path,
-        kernelSize: [3, 3],
+        kernelSize: 3,
+      );
+
+      File bluredImageFile = await creatFileImage(blured!, "blur");
+
+      Uint8List? erodedImage = await Cv2.erode(
+        pathFrom: CVPathFrom.GALLERY_CAMERA,
+        pathString: bluredImageFile.path,
+        kernelSize: [1, 2],
+      );
+
+      File erodeImageFile = await creatFileImage(erodedImage!, "erode");
+
+      Uint8List? dilatedImage = await Cv2.dilate(
+        pathFrom: CVPathFrom.GALLERY_CAMERA,
+        pathString: erodeImageFile.path,
+        kernelSize: [1, 2],
       );
 
       // File dilated1ImageFile = await creatFileImage(dilatedImage!, "dilated1");
-
-      // Uint8List? erodedImage = await Cv2.erode(
-      //   pathFrom: CVPathFrom.GALLERY_CAMERA,
-      //   pathString: dilated1ImageFile.path,
-      //   kernelSize: [2.5, 2.5],
-      // );
-
-      // print(erodedImage);
 
       setState(() {
         image = Image.memory(dilatedImage!);

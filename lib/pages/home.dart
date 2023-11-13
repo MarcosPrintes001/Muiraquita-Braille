@@ -74,6 +74,11 @@ class _HomePageState extends State<HomePage> {
 
       File treshedImageFile = await creatFileImage(treshdImage!, "tresh");
 
+      // var imagemBinaria = manualBinarization(treshdImage, 100);
+
+      // File imagemBinariaFile = await creatFileImage(imagemBinaria, "binaria");
+      // print(imagemBinaria);
+
       Uint8List? blured = await Cv2.medianBlur(
         pathFrom: CVPathFrom.GALLERY_CAMERA,
         pathString: treshedImageFile.path,

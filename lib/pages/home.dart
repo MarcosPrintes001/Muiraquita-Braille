@@ -1,9 +1,11 @@
-// ignore_for_file: use_build_context_synchronously
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_processing_contouring/Image/ImageContouring.dart';
+import 'package:image_processing_contouring/Image/ImageOperation.dart';
+import 'package:image_processing_contouring/Image/ImageManipulation.dart';
 import 'package:muiraquita_braille/materials/constants.dart';
 import 'package:muiraquita_braille/utils/util.dart';
 import 'package:opencv_4/factory/pathfrom.dart';
@@ -20,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   File? file;
   final ImagePicker picker = ImagePicker();
   Image? image;
+
   // List<Offset> _gridLines = [];
 
   addFromGallery() async {
@@ -74,11 +77,6 @@ class _HomePageState extends State<HomePage> {
 
       File treshedImageFile = await creatFileImage(treshdImage!, "tresh");
 
-      // var imagemBinaria = manualBinarization(treshdImage, 100);
-
-      // File imagemBinariaFile = await creatFileImage(imagemBinaria, "binaria");
-      // print(imagemBinaria);
-
       Uint8List? blured = await Cv2.medianBlur(
         pathFrom: CVPathFrom.GALLERY_CAMERA,
         pathString: treshedImageFile.path,
@@ -101,17 +99,31 @@ class _HomePageState extends State<HomePage> {
         kernelSize: [1, 2],
       );
 
-      // File dilated1ImageFile = await creatFileImage(dilatedImage!, "dilated1");
+      File dilated1ImageFile = await creatFileImage(dilatedImage!, "dilated1");
+
+      var ima = LoadImageFromPath(dilated1ImageFile.path);
+
+      var contours = ima?.threshold(100).detectContours();
+
+      // Imprimir os contornos
+      for (var contour in contours!) {
+        // ignore: avoid_print
+        print('Contour:');
+        for (var point in contour.Points) {
+          // ignore: avoid_print
+          print('  (${point.x}, ${point.y})');
+        }
+      }
 
       setState(() {
-        image = Image.memory(dilatedImage!);
+        image = Image.memory(dilatedImage);
         // file = grayImageFile;
       });
     } catch (e) {
+      // ignore: use_build_context_synchronously
       showDialog(
         context: context,
-        builder: (context) =>
-            const AlertDialog(title: Text("ERRO ao traduzir")),
+        builder: (context) => AlertDialog(title: Text("ERRO ao traduzir: $e ")),
       );
     }
   }

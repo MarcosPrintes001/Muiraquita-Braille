@@ -13,13 +13,10 @@ creatFileImage(Uint8List image, String name) async {
 }
 
 Uint8List manualBinarization(Uint8List image, int threshold) {
-  Uint8List binarizedImage = Uint8List.fromList(image);
-
-  for (int i = 0; i < binarizedImage.length; i++) {
-    binarizedImage[i] = (binarizedImage[i] > threshold) ? 255 : 0;
+  for (int i = 0; i < image.length; i++) {
+    image[i] = (image[i] > threshold) ? 255 : 0;
   }
 
-  Uint8List binarizedImageFinal = Uint8List.fromList(binarizedImage);
-
-  return binarizedImageFinal;
+  return image;
 }
+
